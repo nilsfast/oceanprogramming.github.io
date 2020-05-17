@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title></title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <script
+    type="text/javascript"
+    src="/js/lib/dummy.js"
+    
+  ></script>
+
+    <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+
+
+  <style id="compiled-css" type="text/css">
+      #drag-img {
+  cursor: move;
+  position: relative;
+  width: 100%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  left: 50%;
+}
+
+#container {
+  overflow: hidden;
+  background: red;
+  height: 500px;
+  width: 500px;
+}
+
+.button {
+  width: 200px;
+  height: 50px;
+}
+  </style>
+
+  <script id="insert"></script>
+
+
+    <script>
+      const customConsole = (w) => {
+        const pushToConsole = (payload, type) => {
+          w.parent.postMessage({
+            console: {
+              payload: payload,
+              type:    type
+            }
+          }, "*")
+        }
+
+        w.onerror = (message, url, line, column) => {
+          // the line needs to correspond with the editor panel
+          // unfortunately this number needs to be altered every time this view is changed
+          line = line - 79
+          if (line < 0){
+            pushToConsole(message, "error")
+          } else {
+            pushToConsole(`[${line}:${column}] ${message}`, "error")
+          }
+        }
+
+        w.console = (function(){
+          return {
+            log: (payload) => {
+              pushToConsole(payload, "log")
+            },
+            info: (payload) => {
+              pushToConsole(payload, "info")
+            },
+            warn: (payload) => {
+              pushToConsole(payload, "warn")
+            },
+            error: (payload) => {
+              pushToConsole(payload, "error")
+            },
+            system: (payload) => {
+              pushToConsole(payload, "system")
+            }
+          }
+        }())
+
+        console.system("Running fiddle")
+      }
+
+      if (window.parent){
+        customConsole(window)
+      }
+    </script>
+</head>
+<body>
+    <div id="container">
+  <img ondragstart="return false" id="drag-img" src="http://www.patsoy.com/p/2015/09/geometric-patterns-f03phtdx.jpg" />
+</div>
+<input type="button" id="zoomout" class="button" value="Zoom out">
+<input type="button" id="zoomin" class="button" value="Zoom in">
+
+  <!-- TODO: Missing CoffeeScript 2 -->
+
+  <script type="text/javascript">//<![CDATA[
+
+
+var img_ele = null;
+
+function zoom(zoomincrement) {
+  img_ele = document.getElementById('drag-img');
+  var pre_width = img_ele.getBoundingClientRect().width,
+  		pre_height = img_ele.getBoundingClientRect().height;
+  img_ele.style.width = (pre_width * zoomincrement) + 'px';
+  img_ele.style.height = (pre_height * zoomincrement) + 'px';
+  img_ele = null;
+}
+
+document.getElementById('zoomout').addEventListener('click', function() {
+  zoom(0.5);
+});
+document.getElementById('zoomin').addEventListener('click', function() {
+  zoom(1.5);
+});
+
+function start_drag() {
+  img_ele = this;
+  x_img_ele = window.event.clientX - document.getElementById('drag-img').offsetLeft;
+  y_img_ele = window.event.clientY - document.getElementById('drag-img').offsetTop;
+	console.log("start drag");
+}
+
+function stop_drag() {
+  img_ele = null;
+  console.log("stop drag");
+}
+
+function while_drag() {
+  var x_cursor = window.event.clientX;
+  var y_cursor = window.event.clientY;
+  if (img_ele !== null) {
+    img_ele.style.left = (x_cursor - x_img_ele) + 'px';
+    img_ele.style.top = ( window.event.clientY - y_img_ele) + 'px';
+      console.log('dragging > img_left:' + img_ele.style.left+' | img_top: '+img_ele.style.top);
+  }
+}
+
+document.getElementById('drag-img').addEventListener('mousedown', start_drag);
+document.getElementById('container').addEventListener('mousemove', while_drag);
+document.getElementById('container').addEventListener('mouseup', stop_drag);
+
+
+  //]]></script>
+
+  <script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent){
+      window.parent.parent.postMessage(["resultsFrame", {
+        height: document.body.getBoundingClientRect().height,
+        slug: "azyb9mzz"
+      }], "*")
+    }
+
+    // always overwrite window.name, in case users try to set it manually
+    window.name = "result"
+  </script>
+
+    <script>
+      let allLines = []
+
+      window.addEventListener("message", (message) => {
+        if (message.data.console){
+          let insert = document.querySelector("#insert")
+          allLines.push(message.data.console.payload)
+          insert.innerHTML = allLines.join(";\r")
+
+          let result = eval.call(null, message.data.console.payload)
+          if (result !== undefined){
+            console.log(result)
+          }
+        }
+      })
+    </script>
+
+</body>
+</html>
